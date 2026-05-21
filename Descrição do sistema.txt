@@ -1,0 +1,47 @@
+
+
+INTEGRANTES: DAVID GABRIEL M. C. LIMA E GUILHERME HENRIQUE M. ESTRELA
+
+ Sistema Integrado de Controle de Estoque e Integração Analítica (BI)
+
+1. Descrição Geral do Projeto
+
+O projeto consiste em uma solução de ponta a ponta para gerenciamento, simulação e análise de movimentações de estoque. A arquitetura foi desenhada para integrar uma aplicação de backend robusta a um banco de dados relacional e a uma ferramenta de Business Intelligence (BI), permitindo que gestores tomem decisões estratégicas baseadas em dados históricos e em tempo real.
+
+O grande diferencial do sistema é a automação do fluxo de dados: o backend simula o comportamento real de um mercado, popula o banco de dados de forma inteligente e a camada de BI consome esses dados diretamente através de consultas SQL avançadas e otimizadas.
+
+ 2. Tecnologias Utilizadas
+
+A pilha tecnológica foi escolhida seguindo os padrões atuais da indústria de software:
+
+Backend (Java & Spring Boot): Responsável pela lógica de negócios, mapeamento de dados e pelo motor de inicialização de dados simulados.
+Persistência (Spring Data JPA & Hibernate): Utilizados para automatizar a criação das tabelas no banco de dados (ORM) e gerenciar as operações de escrita.
+Banco de Dados (PostgreSQL): Banco relacional robusto encarregado de armazenar o histórico de produtos e movimentações com segurança e consistência.
+Camada Analítica (Power BI): Ferramenta utilizada para conectar diretamente ao banco, processar dados via queries SQL customizadas e gerar o dashboard visual.
+
+ 3. Arquitetura e Funcionamento do Sistema
+
+O funcionamento do projeto é dividido em três etapas perfeitamente integradas:
+
+Etapa 1: Java 
+
+Ao iniciar a aplicação Java, o componente `DataSeeder` (que implementa `CommandLineRunner`) entra em ação. Ele valida se o banco está vazio e, caso positivo, executa duas tarefas principais:
+
+1.Mapeamento de Catálogo: Registra produtos divididos em categorias estratégicas (Eletrônicos, Periféricos e Móveis) com seus respectivos preços unitários.
+2. Simulação Algorítmica de Cenários: O sistema gera automaticamente um lote inicial de abastecimento (Entradas) e, em seguida, simula dezenas de movimentações aleatórias (70% de saídas/vendas e 30% de novos reabastecimentos) espalhadas retroativamente ao longo dos últimos 90 dias. Isso garante uma base de dados rica e realista para análise de tendências.
+
+ Etapa 2: A Estrutura de Dados (PostgreSQL)
+
+O Hibernate traduz as classes Java em tabelas relacionais (`produtos` e `movimentacoes_estoque`), estabelecendo um relacionamento de 1 para Muitos ($1:N$). Cada movimentação de estoque sabe exatamente a qual produto pertence por meio de uma chave estrangeira (`produto_id`), mantendo a integridade referencial do banco.
+
+ Etapa 3: A Inteligência de Negócio (Power BI)
+
+Em vez de simplesmente importar tabelas brutas e sobrecarregar a memória do relatório, o Power BI faz uma conexão direta via Instruções SQL Avançadas. O processamento pesado de agregação (cálculo de faturamento, saldos atuais de estoque e agrupamentos mensais) é feito diretamente pelo motor do PostgreSQL.
+
+O Power BI recebe os dados já consolidados e os distribui em um painel interativo composto por:
+
+Indicadores de Performance (KPIs): Cartões com Faturamento Total, Volume de Vendas, Peças em Estoque e Alertas de Produtos com Baixa Rotatividade (Críticos).
+Gráficos Volumétricos e de Linhas: Análise visual de quais categorias geram mais receita e como as entradas e saídas se comportaram mês a mês.
+Filtros Dinâmicos: Segmentadores de dados que permitem ao usuário filtrar todo o painel por categoria com apenas um clique.
+
+ 
