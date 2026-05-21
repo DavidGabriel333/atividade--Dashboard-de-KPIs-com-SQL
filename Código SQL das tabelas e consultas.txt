@@ -1,0 +1,86 @@
+-- Criação da tabela de Produtos
+CREATE TABLE produtos (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    categoria VARCHAR(50) NOT NULL,
+    preco_unitario DECIMAL(10, 2) NOT NULL
+);
+
+-- Criação da tabela de Movimentações
+CREATE TABLE movimentacoes_estoque (
+    id SERIAL PRIMARY KEY,
+    produto_id INT NOT NULL,
+    tipo VARCHAR(10) CHECK (tipo IN ('ENTRADA', 'SAIDA')) NOT NULL,
+    quantidade INT NOT NULL,
+    data_movimentacao DATE NOT NULL,
+    FOREIGN KEY (produto_id) REFERENCES produtos(id)
+);
+
+--TOTAL DE VENDAS 
+
+SELECT 
+    p.categoria, 
+    SUM(m.quantidade) AS total_itens_vendidos,
+    SUM(m.quantidade * p.preco_unitario) AS valor_total_saidas
+FROM produtos p
+JOIN movimentacoes_estoque m ON p.id = m.produto_id
+WHERE m.tipo = 'SAIDA'
+GROUP BY p.categoria
+ORDER BY valor_total_saidas DESC;
+
+-- SALDO ATUAL 
+SELECT 
+    p.nome,
+    p.categoria,
+    SUM(CASE WHEN m.tipo = 'ENTRADA' THEN m.quantidade ELSE 0 END) - 
+    SUM(CASE WHEN m.tipo = 'SAIDA' THEN m.quantidade ELSE 0 END) AS saldo_estoque
+FROM produtos p
+JOIN movimentacoes_estoque m ON p.id = m.produto_id
+GROUP BY p.nome, p.categoria
+HAVING (SUM(CASE WHEN m.tipo = 'ENTRADA' THEN m.quantidade ELSE 0 END) - 
+        SUM(CASE WHEN m.tipo = 'SAIDA' THEN m.quantidade ELSE 0 END)) < 20
+ORDER BY saldo_estoque ASC;
+
+--MOVIMENTAÇÃO POR MÊS 
+
+SELECT 
+    TO_CHAR(m.data_movimentacao, 'YYYY-MM') AS mes_ano,
+    m.tipo,
+    COUNT(m.id) AS qtd_transacoes,
+    AVG(m.quantidade) AS media_itens_por_transacao
+FROM movimentacoes_estoque m
+WHERE m.data_movimentacao >= '2025-01-01'
+GROUP BY TO_CHAR(m.data_movimentacao, 'YYYY-MM'), m.tipo
+ORDER BY mes_ano DESC;
+
+-- Consulta 1: Faturamento e Vendas por Categoria
+SELECT 
+    p.categoria, 
+    SUM(m.quantidade) AS total_itens_vendidos,
+    SUM(m.quantidade * p.preco_unitario) AS valor_total_vendas
+FROM produtos p
+JOIN movimentacoes_estoque m ON p.id = m.produto_id
+WHERE m.tipo = 'SAIDA'
+GROUP BY p.categoria
+ORDER BY valor_total_vendas DESC
+
+--Consulta 2: Tendência Mensal de Movimentação
+SQL
+SELECT 
+    TO_CHAR(m.data_movimentacao, 'YYYY-MM') AS mes_ano,
+    m.tipo,
+    SUM(m.quantidade) AS total_itens
+FROM movimentacoes_estoque m
+GROUP BY TO_CHAR(m.data_movimentacao, 'YYYY-MM'), m.tipo
+ORDER BY mes_ano ASC
+
+--Consulta 3: Posição Atual do Estoque
+SQL
+SELECT 
+    p.nome,
+    p.categoria,
+    SUM(CASE WHEN m.tipo = 'ENTRADA' THEN m.quantidade ELSE 0 END) - 
+    SUM(CASE WHEN m.tipo = 'SAIDA' THEN m.quantidade ELSE 0 END) AS saldo_atual
+FROM produtos p
+JOIN movimentacoes_estoque m ON p.id = m.produto_id
+GROUP BY p.nome, p.categoria
